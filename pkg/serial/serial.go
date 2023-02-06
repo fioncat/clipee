@@ -85,23 +85,3 @@ func readData(src io.Reader) ([]byte, error) {
 
 	return data, nil
 }
-
-type Encoder struct {
-	dst     io.Writer
-	handler string
-}
-
-func NewEncoder(handler string, dst io.Writer) *Encoder {
-	return &Encoder{
-		handler: handler,
-		dst:     dst,
-	}
-}
-
-func (e *Encoder) Encode(meta, data []byte) error {
-	return Write(e.dst, &Packet{
-		Handler: e.handler,
-		Meta:    meta,
-		Data:    data,
-	})
-}
