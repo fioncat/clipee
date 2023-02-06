@@ -2,7 +2,6 @@ package serial
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 )
 
@@ -72,15 +71,18 @@ func readData(src io.Reader) ([]byte, error) {
 	if dataLen == 0 {
 		return nil, nil
 	}
+	size := int(dataLen)
 
-	data := make([]byte, int(dataLen))
-	readLen, err := src.Read(data)
-	if err != nil {
-		return nil, err
-	}
-
-	if readLen != int(dataLen) {
-		return nil, fmt.Errorf("packet bad format: expect to read %d data, but read %d", dataLen, readLen)
+	data := make([]byte, 0, size)
+	remain := size
+	for remain > 0 {
+		buffer := make([]byte, remain)
+		readSize, err := src.Read(buffer)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, buffer[:readSize]...)
+		remain -= readSize
 	}
 
 	return data, nil
