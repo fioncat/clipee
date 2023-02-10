@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fioncat/clipee/cmd/daemon"
+	"github.com/fioncat/clipee/config"
 	"github.com/fioncat/clipee/pkg/clipboard"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -16,7 +17,12 @@ var Cmd = &cobra.Command{
 	SilenceUsage:  true,
 
 	PersistentPreRunE: func(_ *cobra.Command, _ []string) error {
-		err := clipboard.Init()
+		err := config.Init()
+		if err != nil {
+			return err
+		}
+
+		err = clipboard.Init()
 		if err != nil {
 			return fmt.Errorf("failed to init clipboard driver: %v", err)
 		}

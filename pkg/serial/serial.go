@@ -63,6 +63,9 @@ func Read(src io.Reader) (*Packet, error) {
 }
 
 func readData(src io.Reader) ([]byte, error) {
+	// The binary format: {data_len(uint32)}{data(bytes)}
+	// First, we need to read the dataLen, then read dataLen of bytes as data to return.
+	// The dataLen is formatted as LittleEndian, see writeData() method.
 	var dataLen uint32
 	err := binary.Read(src, binary.LittleEndian, &dataLen)
 	if err != nil {
@@ -81,6 +84,11 @@ func readData(src io.Reader) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+		// According to the doc of io.Reader, the readSize returned by Read method
+		// will be less or equal than the buffer size. But won't be bigger than the
+		// buffer's scratch space.
+		// So here we slice out the valid data from the buffer. If there is sill data
+		// has not been read, go to the next loop to continue.
 		data = append(data, buffer[:readSize]...)
 		remain -= readSize
 	}
