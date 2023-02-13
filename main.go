@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/fioncat/clipee/cmd"
 	"github.com/fioncat/clipee/cmd/daemon"
 	"github.com/fioncat/clipee/config"
 	"github.com/fioncat/clipee/pkg/clipboard"
@@ -36,6 +37,7 @@ var Cmd = &cobra.Command{
 
 func main() {
 	Cmd.AddCommand(daemon.Start, daemon.Stop, daemon.Status, daemon.Logs)
+	Cmd.AddCommand(cmd.Upload, cmd.Config)
 
 	err := Cmd.Execute()
 	if err != nil {

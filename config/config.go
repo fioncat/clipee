@@ -8,7 +8,21 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
+
+	_ "embed"
 )
+
+//go:embed config.yaml
+var Default []byte
+
+var defaultInstance = func() *Config {
+	var cfg Config
+	err := yaml.Unmarshal(Default, &cfg)
+	if err != nil {
+		panic(err)
+	}
+	return &cfg
+}()
 
 const (
 	defaultListenAddr = ":9988"
@@ -37,14 +51,40 @@ func doInit() (*Config, error) {
 	}
 
 	stat, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("please create config file %s first", path)
+	switch {
+	case os.IsNotExist(err):
+		dir := filepath.Dir(path)
+		_, err = os.Stat(dir)
+		if err != nil {
+			if os.IsNotExist(err) {
+				err = os.MkdirAll(dir, os.ModePerm)
+				if err != nil {
+					return nil, fmt.Errorf("failed to create config directory: %v", err)
+				}
+			} else {
+				return nil, fmt.Errorf("config directory error: %v", err)
+			}
 		}
+
+		file, err := os.Create(path)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+		_, err = file.Write(Default)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write default config: %v", err)
+		}
+		logrus.Warn("cannot find config file, write default content")
+		return defaultInstance, nil
+
+	case err == nil:
+		if stat.IsDir() {
+			return nil, fmt.Errorf("config file %s is a directory", path)
+		}
+
+	default:
 		return nil, fmt.Errorf("failed to read config file: %v", err)
-	}
-	if stat.IsDir() {
-		return nil, fmt.Errorf("config file %s is a directory", path)
 	}
 
 	file, err := os.Open(path)

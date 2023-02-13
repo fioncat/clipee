@@ -16,10 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	flagTargets  []string
-	flagNoDaemon bool
-)
+var flagNoDaemon bool
 
 func init() {
 	Start.PersistentFlags().BoolVarP(&flagNoDaemon, "no-daemon", "n", false, "no daemon")
@@ -163,7 +160,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func StartAll() error {
-	if len(flagTargets) > 0 {
+	if len(config.Get().Remotes) > 0 {
 		go StartClient()
 	}
 	return StartServer()
