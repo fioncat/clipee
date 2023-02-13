@@ -1,0 +1,6 @@
+listen: ":9988"
+share: "$HOME/Desktop/share"
+
+remotes:
+  # TODO: Configure your remote address here
+  # - ""
